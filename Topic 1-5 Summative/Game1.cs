@@ -13,11 +13,11 @@ namespace Topic_1_5_Summative
         private SpriteBatch _spriteBatch;
 
         Texture2D mainMenu, backgroundTexture, sniperScopeTexture, win, lose;
-        SoundEffect shotSound, tWin, ctWin;
+        SoundEffect shotSound, tWin, ctWin, trahtalk;
         Song bgMusic;
         SpriteFont spriteFont;
 
-        float x, y;
+        float x, y, seconds;
 
         enum Screen
         {
@@ -45,6 +45,7 @@ namespace Topic_1_5_Summative
             _graphics.PreferredBackBufferWidth = 1079;
             _graphics.PreferredBackBufferHeight = 590;
             _graphics.ApplyChanges();
+            seconds = 0;
 
             
 
@@ -71,48 +72,52 @@ namespace Topic_1_5_Summative
             sniperScopeTexture = Content.Load<Texture2D>("scope");  
             win = Content.Load<Texture2D>("win");
             lose = Content.Load<Texture2D>("lose");
+            trahtalk = Content.Load<SoundEffect>("trashtalk");
 
             // TODO: use this.Content to load your game content here
         }
 
         protected override void Update(GameTime gameTime)
         {
+            seconds += (float)gameTime.ElapsedGameTime.TotalSeconds;
             mouseState = Mouse.GetState();
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
             // TODO: Add your update logic here
-
-
+           
             if (screen == Screen.Intro)
             {
                 if (Keyboard.GetState().IsKeyDown(Keys.Enter)) //if keyboard pressed enter not hold down enter
                 {
                     screen = Screen.Game;
                     MediaPlayer.Stop();
+                    seconds = 0;
+                    seconds = 0f;
                 }
             }
             else if (screen == Screen.Game)
             {
                 y = (float)Math.Sin(gameTime.TotalGameTime.TotalSeconds) * 20;
                 x = (float)Math.Cos(gameTime.TotalGameTime.TotalSeconds) * 20;
+                
                 if (mouseState.LeftButton == ButtonState.Pressed)
                 {
                     shotSound.Play();
+                    ctWin.Play();
                     screen = Screen.Endwin;
                 }
+                else if (seconds >= 5) //not working 
+                {
+                    screen = Screen.Endlose;
+                    tWin.Play();
+                    trahtalk.Play();
+                }
             }
-            else if (screen == Screen.Endwin)
-            {
-                ctWin.Play();
-            }
-            else if (screen == Screen.Endlose)
-            {
-                tWin.Play();
-            }
-                base.Update(gameTime);
             
+
+            base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -134,7 +139,6 @@ namespace Topic_1_5_Summative
             if (screen == Screen.Game)
             {
                 //draw the retangle background and scope
-                
                 _spriteBatch.Draw(backgroundTexture, new Vector2(x, y), Color.White);
                 _spriteBatch.Draw(sniperScopeTexture, new Vector2(0, 0), Color.White);
                 _spriteBatch.DrawString(spriteFont, "Press left click to shoot", new Vector2(200, 500), Color.White);
@@ -153,9 +157,6 @@ namespace Topic_1_5_Summative
             }
 
             _spriteBatch.End();
-
-
-            
 
             base.Draw(gameTime);
         }
